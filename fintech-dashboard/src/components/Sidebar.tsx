@@ -1,4 +1,4 @@
-import { LayoutDashboard, UploadCloud, FileText } from "lucide-react"
+import { LayoutDashboard, UploadCloud, FileText, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NavLink } from "react-router-dom"
 
@@ -48,6 +48,18 @@ export function Sidebar({ className }: SidebarProps) {
                         >
                             <FileText className="h-4 w-4" />
                             Reports
+                        </NavLink>
+                        <NavLink
+                            to="/about"
+                            className={({ isActive }) => cn(
+                                "w-full justify-start flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                                isActive
+                                    ? "bg-secondary text-secondary-foreground"
+                                    : "hover:bg-transparent hover:underline text-muted-foreground"
+                            )}
+                        >
+                            <Info className="h-4 w-4" />
+                            About
                         </NavLink>
                     </div>
                 </div>

@@ -57,7 +57,8 @@ export function AnalysisCard({ transactionData, pdfFile }: AnalysisCardProps) {
             setResult(data)
         } catch (error: any) {
             console.error(error)
-            setError(`Analysis failed: ${error.message || "Unknown error"}`)
+            setError(`Analysis failed: ${error.message || "Unknown error"}. Please check your API Key.`)
+            setShowKeyInput(true)
         } finally {
             setIsLoading(false)
         }
