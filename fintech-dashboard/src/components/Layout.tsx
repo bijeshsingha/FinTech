@@ -14,7 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
                         <Menu className="h-6 w-6" />
                     </Button>
-                    <span className="font-bold text-lg">FinTech Corp</span>
+                    <span className="font-bold text-lg">SwiftAudit</span>
                 </div>
             </div>
 

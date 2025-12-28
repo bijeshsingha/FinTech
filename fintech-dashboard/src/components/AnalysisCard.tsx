@@ -4,11 +4,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { extractTextFromPdf } from "@/lib/pdf"
 import { generateCreditAnalysis } from "@/lib/ai"
-import { Bot, Loader2, Key, TrendingUp, AlertTriangle, ShieldAlert, CheckCircle, Activity } from "lucide-react"
+import { Bot, Loader2, Key, TrendingUp, AlertTriangle, ShieldAlert, CheckCircle, Activity, Download } from "lucide-react"
 
 interface AnalysisCardProps {
     transactionData: any[]
     pdfFile?: File
+    financialStats?: {
+        revenue: number
+        expenses: number
+        netIncome: number
+        pendingCount: number
+    }
 }
 
 interface AnalysisResult {
@@ -23,15 +29,22 @@ interface AnalysisResult {
     recommendation: "APPROVE" | "REJECT" | "REVIEW"
 }
 
-export function AnalysisCard({ transactionData, pdfFile }: AnalysisCardProps) {
-    const [apiKey, setApiKey] = useState('AIzaSyDNSfUodog1wZd6BGd6dFid1DCEMd4OusA')
+export function AnalysisCard({ transactionData, pdfFile, financialStats }: AnalysisCardProps) {
+    const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || '')
     const [isLoading, setIsLoading] = useState(false)
     const [result, setResult] = useState<AnalysisResult | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showKeyInput, setShowKeyInput] = useState(false)
 
+    // Ensure we always have the latest env key if state is empty
+    const getEffectiveKey = () => apiKey || import.meta.env.VITE_GEMINI_API_KEY;
+
+
+
     const handleAnalyze = async () => {
-        if (!apiKey) {
+        const effectiveKey = getEffectiveKey();
+
+        if (!effectiveKey) {
             setShowKeyInput(true)
             return
         }
@@ -49,7 +62,7 @@ export function AnalysisCard({ transactionData, pdfFile }: AnalysisCardProps) {
                 }
             }
 
-            const jsonString = await generateCreditAnalysis(apiKey, transactionData, pdfText)
+            const jsonString = await generateCreditAnalysis(effectiveKey, transactionData, pdfText, financialStats)
 
             // clean the string if it contains markdown code blocks
             const cleanJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim()
@@ -77,6 +90,19 @@ export function AnalysisCard({ transactionData, pdfFile }: AnalysisCardProps) {
             REVIEW: "bg-yellow-100 text-yellow-800 border-yellow-200"
         }
         return styles[rec as keyof typeof styles] || "bg-gray-100 text-gray-800"
+    }
+
+    const handleDownload = () => {
+        if (!result) return;
+        const dataStr = JSON.stringify(result, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `credit-analysis-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     return (
@@ -222,13 +248,22 @@ export function AnalysisCard({ transactionData, pdfFile }: AnalysisCardProps) {
                             </div>
                         </div>
 
-                        <Button
-                            variant="outline"
-                            onClick={() => setResult(null)}
-                            className="w-full"
-                        >
-                            Reset Analysis
-                        </Button>
+                        <div className="flex gap-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => setResult(null)}
+                                className="flex-1"
+                            >
+                                Reset Analysis
+                            </Button>
+                            <Button
+                                onClick={handleDownload}
+                                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download Report (JSON)
+                            </Button>
+                        </div>
                     </div>
                 )}
             </CardContent>

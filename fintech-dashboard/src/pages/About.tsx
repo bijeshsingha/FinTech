@@ -6,7 +6,7 @@ export function AboutPage() {
         <div className="space-y-8 animate-in fade-in zoom-in duration-500 max-w-5xl mx-auto">
             <div className="text-center space-y-4 mb-12">
                 <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    About FinTech AI Dashboard
+                    About SwiftAudit
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                     A next-generation financial analysis platform powered by Google's Gemini 2.5 Flash AI model.
@@ -107,7 +107,7 @@ export function AboutPage() {
             <hr className="my-8 border-t border-gray-200" />
 
             <div className="text-center text-sm text-muted-foreground">
-                <p>FinTech Dashboard v1.0 • Built with Gemini 2.5 • React • Vite</p>
+                <p>SwiftAudit v1.0 • Built with Gemini 2.5 • React • Vite</p>
             </div>
         </div>
     )

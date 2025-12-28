@@ -1,14 +1,19 @@
 import { Dropzone } from "@/components/Dropzone"
 import { AnalysisCard } from "@/components/AnalysisCard"
+import { MetricDetailDialog } from "@/components/MetricDetailDialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useFiles } from "@/context/FileContext"
 import { useNavigate } from "react-router-dom"
-import { cn } from "@/lib/utils"
+import { cn, formatExcelDate } from "@/lib/utils"
+import { useState } from "react"
 
 export function DashboardPage() {
     const { addFile, financialStats, files } = useFiles()
     const navigate = useNavigate()
+    const [selectedMetric, setSelectedMetric] = useState<{ name: string, value: number, data?: any[] } | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    const ITEMS_PER_PAGE = 10
 
     const handleDrop = async (files: File[]) => {
         for (const file of files) {
@@ -22,8 +27,9 @@ export function DashboardPage() {
 
     const allData = files.filter(f => f.type === 'excel' && f.data).flatMap(f => f.data)
 
-    // Get recent transactions, maybe limit to 5-10
-    const recentTransactions = allData.slice(0, 10)
+    const totalPages = Math.ceil(allData.length / ITEMS_PER_PAGE)
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const recentTransactions = allData.slice(startIndex, startIndex + ITEMS_PER_PAGE)
 
     const pdfFileInStore = files.find(f => f.type === 'pdf')
     const pdfFile = pdfFileInStore ? pdfFileInStore.originalFile : undefined
@@ -38,7 +44,10 @@ export function DashboardPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-                <Card>
+                <Card
+                    className="cursor-pointer hover:shadow-lg transition-all"
+                    onClick={() => setSelectedMetric({ name: 'Net Income', value: financialStats.netIncome })}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Net Income</CardTitle>
                     </CardHeader>
@@ -49,7 +58,10 @@ export function DashboardPage() {
                         <p className="text-xs text-muted-foreground">Revenue - Expenses</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card
+                    className="cursor-pointer hover:shadow-lg transition-all"
+                    onClick={() => setSelectedMetric({ name: 'Total Revenue', value: financialStats.revenue })}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                     </CardHeader>
@@ -58,7 +70,10 @@ export function DashboardPage() {
                         <p className="text-xs text-muted-foreground">Based on uploaded statements</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card
+                    className="cursor-pointer hover:shadow-lg transition-all"
+                    onClick={() => setSelectedMetric({ name: 'Pending Transactions', value: financialStats.pendingCount })}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Transactions</CardTitle>
                     </CardHeader>
@@ -67,7 +82,10 @@ export function DashboardPage() {
                         <p className="text-xs text-muted-foreground">Requires attention</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card
+                    className="cursor-pointer hover:shadow-lg transition-all"
+                    onClick={() => setSelectedMetric({ name: 'Total Expenses', value: financialStats.expenses })}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
                     </CardHeader>
@@ -78,9 +96,21 @@ export function DashboardPage() {
                 </Card>
             </div>
 
-            <div className="grid gap-4 mb-8">
+            {selectedMetric && (
+                <MetricDetailDialog
+                    isOpen={!!selectedMetric}
+                    onClose={() => setSelectedMetric(null)}
+                    metricName={selectedMetric.name}
+                    value={selectedMetric.value}
+                    data={selectedMetric.data}
+                />
+            )}
+
+            {/* AI Analysis Section */}
+            <div className="mt-8">
                 <AnalysisCard
-                    transactionData={allData}
+                    transactionData={recentTransactions}
+                    financialStats={financialStats}
                     pdfFile={pdfFile}
                 />
             </div>
@@ -112,7 +142,7 @@ export function DashboardPage() {
 
                                             return (
                                                 <tr key={i} className={cn("border-b transition-colors hover:bg-muted/50", isHighValue && "bg-red-50 hover:bg-red-100")}>
-                                                    <td className="p-4 align-middle">{row['Date'] || row['date']}</td>
+                                                    <td className="p-4 align-middle">{formatExcelDate(row['Date'] || row['date'])}</td>
                                                     <td className="p-4 align-middle">{row['Description'] || row['description']}</td>
                                                     <td className={cn("p-4 align-middle text-right font-medium", isHighValue ? "text-red-700 font-bold" : "")}>
                                                         {formatCurrency(amount)}
@@ -124,6 +154,30 @@ export function DashboardPage() {
                                 </tbody>
                             </table>
                         </div>
+
+                        {recentTransactions.length > 0 && (
+                            <div className="flex items-center justify-between py-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    Page {currentPage} of {Math.max(totalPages, 1)}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages || totalPages === 0}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
                 <Card className="col-span-3">

@@ -1,6 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
-export async function generateCreditAnalysis(apiKey: string, transactionData: any[], businessPlanText: string) {
+export async function generateCreditAnalysis(
+    apiKey: string,
+    transactionData: any[],
+    businessPlanText: string,
+    financialStats?: {
+        revenue: number,
+        expenses: number,
+        netIncome: number,
+        pendingCount: number
+    }
+) {
     const ai = new GoogleGenAI({ apiKey });
 
     const safelySliceData = (data: any[]) => {
@@ -11,9 +21,19 @@ export async function generateCreditAnalysis(apiKey: string, transactionData: an
         }
     };
 
+    const statsContext = financialStats ? `
+    Key Financial Metrics:
+    - Total Revenue: $${financialStats.revenue.toLocaleString()}
+    - Total Expenses: $${financialStats.expenses.toLocaleString()}
+    - Net Income: $${financialStats.netIncome.toLocaleString()}
+    - Pending Transactions: ${financialStats.pendingCount}
+    ` : "";
+
     const prompt = `
     You are a Senior Credit Analyst. 
     
+    ${statsContext}
+
     Here is the transaction history (JSON):
     ${JSON.stringify(safelySliceData(transactionData))} 
     (Note: Only the first 50 transactions are provided for brevity, summarize based on this sample).
