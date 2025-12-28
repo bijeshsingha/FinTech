@@ -47,11 +47,11 @@ export function MetricDetailDialog({ isOpen, onClose, metricName, value, data }:
                                 fill="#8884d8"
                                 dataKey="value"
                             >
-                                {chartData.map((entry: any, index: number) => (
+                                {chartData.map((_: any, index: number) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)} />
+                            <Tooltip formatter={(val: number | string | Array<number | string> | undefined) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(val || 0))} />
                             <Legend />
                         </PieChart>
                     </ResponsiveContainer>
