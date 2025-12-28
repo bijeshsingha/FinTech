@@ -107,7 +107,7 @@ export function DashboardPage() {
             )}
 
             {/* AI Analysis Section */}
-            <div className="mt-8">
+            <div className="mt-8 mb-8">
                 <AnalysisCard
                     transactionData={recentTransactions}
                     financialStats={financialStats}
